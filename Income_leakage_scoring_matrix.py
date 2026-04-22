@@ -233,7 +233,7 @@ st.markdown(
     <div class="hero">
       <h1>Income Leakage Score Calculator</h1>
       <p>Enter the amount (in millions) to get the <b>Rating</b> and <b>Percentage Score</b> based on the approved matrix.</p>
-      <div class="chip">Theme: Co-op Green • Max Score: {int(MAX_SCORE)}%</div>
+      <div class="chip">Max Score: 200%</div>
     </div>
     """,
     unsafe_allow_html=True
