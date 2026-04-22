@@ -10,6 +10,7 @@ OWNER = "Internal Audit"
 MAX_SCORE = 200.0
 
 PRIMARY_GREEN = "#064E3B"
+COOP_MINT = "#7ADCB4"
 LIGHT_BG = "#F4FBF8"
 TEXT_DARK = "#0F172A"
 TEXT_MUTED = "#475569"
@@ -67,14 +68,14 @@ def make_matrix_df():
 
 
 def to_excel_bytes(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Result")
-    return output.getvalue()
+    return buffer.getvalue()
 
 
 # -----------------------------
-# PAGE SETUP
+# PAGE CONFIG
 # -----------------------------
 st.set_page_config(
     page_title="Income Leakage Score Calculator",
@@ -83,7 +84,7 @@ st.set_page_config(
 )
 
 # -----------------------------
-# CLEAN UI STYLING
+# UI STYLING
 # -----------------------------
 st.markdown(
     f"""
@@ -92,27 +93,22 @@ st.markdown(
         background: linear-gradient(180deg, #ffffff, {LIGHT_BG});
       }}
 
-      .block-container {{
-        padding-top: 1.2rem;
-      }}
-
       .header-card {{
         background: linear-gradient(135deg, {PRIMARY_GREEN}, #0b6b53);
         border-radius: 18px;
-        padding: 20px 22px;
+        padding: 22px;
         color: white;
         box-shadow: 0 10px 28px rgba(2,44,33,0.18);
       }}
 
-      .header-card h1 {{
-        margin: 0;
-        font-size: 1.6rem;
-        font-weight: 700;
-      }}
-
-      .header-card p {{
-        margin-top: 6px;
-        opacity: 0.9;
+      .chip {{
+        display: inline-block;
+        padding: 6px 12px;
+        margin-top: 10px;
+        border-radius: 999px;
+        background: rgba(122,220,180,0.20);
+        border: 1px solid rgba(122,220,180,0.35);
+        font-size: 0.85rem;
       }}
 
       .result-card {{
@@ -133,26 +129,23 @@ st.markdown(
         font-size: 1.4rem;
         font-weight: 800;
       }}
-
-      button {{
-        border-radius: 14px !important;
-      }}
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # -----------------------------
-# HEADER
+# HEADER (✅ TEXT FIX APPLIED HERE)
 # -----------------------------
 st.markdown(
-    """
+    f"""
     <div class="header-card">
         <h1>Income Leakage Score Calculator</h1>
         <p>
-            Enter the amount (in millions) to determine the Rating and Percentage Score
-            based on the approved scoring matrix.
+            Enter the amount (in millions) to get the Rating and Percentage Score
+            based on the approved matrix.
         </p>
+        <div class="chip">Max Score: {int(MAX_SCORE)}%</div>
     </div>
     """,
     unsafe_allow_html=True
@@ -163,14 +156,12 @@ st.write("")
 # -----------------------------
 # TABS
 # -----------------------------
-tab_calc, tab_matrix, tab_about = st.tabs(["✅ Calculator", "📋 Matrix", "ℹ️ About"])
+tab_calc, tab_matrix = st.tabs(["✅ Calculator", "📋 Matrix"])
 
 with tab_calc:
     col1, col2 = st.columns([1.1, 0.9], gap="large")
 
     with col1:
-        st.subheader("Enter Amount")
-
         with st.form("calc_form"):
             amount = st.number_input(
                 "Amount (Millions)",
@@ -208,7 +199,7 @@ with tab_calc:
                     unsafe_allow_html=True
                 )
 
-                result_df = pd.DataFrame([{
+                df = pd.DataFrame([{
                     "Amount (M)": amount,
                     "Band": band,
                     "Rating": rating,
@@ -216,21 +207,18 @@ with tab_calc:
                 }])
 
                 st.write("")
-                st.subheader("Download Result")
-
                 c1, c2 = st.columns(2)
                 with c1:
                     st.download_button(
                         "⬇️ Download CSV",
-                        result_df.to_csv(index=False).encode("utf-8"),
+                        df.to_csv(index=False).encode("utf-8"),
                         "income_leakage_score.csv",
                         "text/csv"
                     )
-
                 with c2:
                     st.download_button(
                         "⬇️ Download Excel",
-                        to_excel_bytes(result_df),
+                        to_excel_bytes(df),
                         "income_leakage_score.xlsx",
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
@@ -238,21 +226,6 @@ with tab_calc:
     with col2:
         st.subheader("Scoring Matrix")
         st.table(make_matrix_df())
-
-with tab_matrix:
-    st.subheader("Scoring Matrix")
-    st.table(make_matrix_df())
-
-with tab_about:
-    st.subheader("About")
-    st.markdown(
-        f"""
-        - Purpose: Convert leakage amounts into performance scores
-        - Method: Linear scoring within each band
-        - Maximum score capped at **{int(MAX_SCORE)}%**
-        - Owner: **{OWNER}**
-        """
-    )
 
 st.markdown("---")
 st.caption(f"Version {APP_VERSION} | Owner: {OWNER}")
