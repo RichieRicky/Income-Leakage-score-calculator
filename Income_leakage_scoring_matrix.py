@@ -135,7 +135,7 @@ st.markdown(
 )
 
 # -----------------------------
-# HEADER (✅ TEXT FIX APPLIED HERE)
+# HEADER
 # -----------------------------
 st.markdown(
     f"""
@@ -179,6 +179,7 @@ with tab_calc:
             else:
                 pct, rating, band = calculate_score(amount)
 
+                # ✅ FIX: unsafe_allow_html=True ADDED HERE
                 st.markdown(
                     f"""
                     <div class="result-card">
